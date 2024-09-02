@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.huang</groupId>
+        <artifactId>nacos-springcloud</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>notepad-consumer</artifactId>
+
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.akathist.maven.plugins.launch4j</groupId>
+                <artifactId>launch4j-maven-plugin</artifactId>
+                <version>2.4.1</version> <!-- 请确保使用正确的版本 -->
+                <executions>
+                    <execution>
+                        <id>launch4j</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>launch4j</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <headerType>gui</headerType> <!-- 如果是控制台应用，使用 console -->
+                    <outfile>${project.build.directory}/MyNote.exe</outfile>
+                    <jar>D:\data\nacos-springcloud\out\artifacts\notepad_consumer_jar\notepad-consumer.jar</jar>
+                    <errTitle>Error</errTitle>
+<!--                    <cmdLine>-Dfile.encoding=UTF-8 -Duser.language=zh -Duser.country=CN</cmdLine>-->
+                    <chdir>.</chdir>
+                    <priority>normal</priority>
+                    <downloadUrl>http://java.com/download</downloadUrl>
+                    <supportUrl>http://www.example.com/support</supportUrl>
+                    <stayAlive>false</stayAlive>
+                    <icon>${basedir}/src/main/resources/static/img/favicon.ico</icon>
+                    <jre>
+                        <path>D:/program files/Java/jdk1.8/jre</path> <!-- 确认 JRE 路径正确 -->
+                        <minVersion>1.8</minVersion>
+                        <maxVersion>1.8.0_201</maxVersion>
+                        <requiresJdk>false</requiresJdk>
+                    </jre>
+                    <versionInfo>
+                        <fileVersion>1.0.0.0</fileVersion>
+                        <txtFileVersion>1.0.0.0</txtFileVersion>
+                        <fileDescription>Notepad Consumer</fileDescription>
+                        <copyright>Copyright (C) 2024</copyright>
+                        <productVersion>1.0.0.0</productVersion>
+                        <txtProductVersion>1.0.0.0</txtProductVersion>
+                        <productName>Notepad Consumer</productName>
+                        <internalName>notepad-consumer</internalName>
+                        <originalFilename>notepad.exe</originalFilename>
+                    </versionInfo>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
