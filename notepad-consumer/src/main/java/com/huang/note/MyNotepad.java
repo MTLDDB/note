@@ -1,5 +1,8 @@
 package com.huang.note;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.*;
@@ -22,18 +25,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MyNotepad extends JFrame implements DropTargetListener {
+    private static final Logger logger = LoggerFactory.getLogger(MyNotepad.class);
     private JTabbedPane tabbedPane;
-    private JMenuBar menuBar;
-    private JMenu fileMenu, viewMenu;
-    private JMenuItem newMenuItem, openMenuItem, saveMenuItem, closeMenuItem, exitMenuItem, reSaveMenuItem;
-    private JMenuItem changeMenuItem, fontMenuItem;
+    private final JMenuBar menuBar;
+    private final JMenu fileMenu, viewMenu;
+    private final JMenuItem newMenuItem, openMenuItem, saveMenuItem, closeMenuItem, reSaveMenuItem;
+    private final JMenuItem changeMenuItem, fontMenuItem;
 
-    Map<String, FileInfo> titleFilePathMap = new HashMap<>();
+    private final Map<String, FileInfo> titleFilePathMap = new HashMap<>();
 
     private static int newFileNum = 1;
     private static java.util.List<Integer> notUseFileNums = new ArrayList<>();
     SearchDialog myDialog;
-    private Highlighter.HighlightPainter selectHighlightPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.ORANGE);
+    private final Highlighter.HighlightPainter selectHighlightPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.ORANGE);
 
     private static boolean isModified = false;
 
@@ -62,24 +66,24 @@ public class MyNotepad extends JFrame implements DropTargetListener {
         fileMenu = new JMenu("文件");
         menuBar.add(fileMenu);
         newMenuItem = new JMenuItem("新建", KeyEvent.VK_N);
-        newMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK));
+        newMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK));
         newMenuItem.addActionListener(e -> createNewTab());
         fileMenu.add(newMenuItem);
 
         openMenuItem = new JMenuItem("打开");
-        openMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
+        openMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_MASK));
         openMenuItem.addActionListener(e -> openFile());
         fileMenu.add(openMenuItem);
 
         saveMenuItem = new JMenuItem("保存");
-        saveMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
+        saveMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
         saveMenuItem.addActionListener(e -> saveFile());
         fileMenu.add(saveMenuItem);
         reSaveMenuItem = new JMenuItem("另存为");
         reSaveMenuItem.addActionListener(e -> reSaveFile());
         fileMenu.add(reSaveMenuItem);
         closeMenuItem = new JMenuItem("退出");
-        closeMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, ActionEvent.CTRL_MASK));
+        closeMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, InputEvent.CTRL_MASK));
         closeMenuItem.addActionListener(e -> closeTab());
         fileMenu.add(closeMenuItem);
 
@@ -113,15 +117,6 @@ public class MyNotepad extends JFrame implements DropTargetListener {
         viewMenu.add(fontMenuItem);
         menuBar.add(viewMenu);
 
-//        // 创建菜单项 "+"
-//        JMenuItem addTabMenuItem = new JMenuItem("+");
-//        addTabMenuItem.addActionListener(e -> createNewTab());
-//        menuBar.add(addTabMenuItem);
-//
-//        JMenuItem searchMenuItem = new JMenuItem("搜索");
-//        searchMenuItem.setPreferredSize(new Dimension(50, 30)); // 设置宽度和高度
-//        searchMenuItem.addActionListener(e -> openSearchDialog());
-//        menuBar.add(searchMenuItem);
         // 创建一个面板来放置 "+" 和 "搜索" 按钮
         JPanel toolPanel = new JPanel();
         toolPanel.setLayout(new FlowLayout(FlowLayout.LEFT)); // 左对齐
@@ -158,17 +153,14 @@ public class MyNotepad extends JFrame implements DropTargetListener {
         createNewTab();
 
         //监听选项卡的切换事件
-        tabbedPane.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                // 获取当前选中的标签索引
-                int selectedIndex = tabbedPane.getSelectedIndex();
-                if (selectedIndex != -1) {
-                    // 打印或处理标签切换
-                    JTextArea textArea = (JTextArea) ((JScrollPane) tabbedPane.getComponentAt(selectedIndex)).getViewport().getView();
-                    if (textArea != null && myDialog.isOpen()) {
-                        myDialog.addTextArea(textArea);
-                    }
+        tabbedPane.addChangeListener(e -> {
+            // 获取当前选中的标签索引
+            int selectedIndex = tabbedPane.getSelectedIndex();
+            if (selectedIndex != -1) {
+                // 打印或处理标签切换
+                JTextArea textArea = (JTextArea) ((JScrollPane) tabbedPane.getComponentAt(selectedIndex)).getViewport().getView();
+                if (textArea != null && myDialog != null && myDialog.isOpen()) {
+                    myDialog.addTextArea(textArea);
                 }
             }
         });
@@ -238,17 +230,11 @@ public class MyNotepad extends JFrame implements DropTargetListener {
             int result = fileChooser.showSaveDialog(this);
             if (result == JFileChooser.APPROVE_OPTION) {
                 File selectedFile = fileChooser.getSelectedFile();
-
                 // 检查文件名是否已经以 ".txt" 结尾，如果没有则添加 ".txt"
                 if (!selectedFile.getName().endsWith(".txt")) {
                     selectedFile = new File(selectedFile.getAbsolutePath() + ".txt");
                 }
-                try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(selectedFile), StandardCharsets.UTF_8))) {
-//                try (PrintWriter writer = new PrintWriter(new FileWriter(selectedFile))) {
-                    writer.print(textArea.getText());
-                } catch (IOException e) {
-                    JOptionPane.showMessageDialog(this, "Error saving file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                }
+                FileUtil.writeFile(selectedFile.getAbsolutePath(), textArea.getText(), this);
             }
 
 
@@ -291,16 +277,9 @@ public class MyNotepad extends JFrame implements DropTargetListener {
             // 设置默认保存文件名为当前标签的标题，带上 ".txt" 扩展名
             if (titleFilePathMap.containsKey(tabbedPane.getTitleAt(index))) {
                 FileInfo fileInfo = titleFilePathMap.get(tabbedPane.getTitleAt(index));
-                File file = new File(fileInfo.getFilePath());
-                try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
-//                try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
-                    writer.print(textArea.getText());
-                    // 保存成功后，将当前标签页的标题改成保存的文件名
+                if (FileUtil.writeFile(fileInfo.getFilePath(), textArea.getText(), this)) {
                     JLabel titleLabel = (JLabel) ((JPanel) tabbedPane.getTabComponentAt(index)).getComponent(0);
-
                     titleLabel.setText(fileInfo.getFileName()); // 更新标签页标题
-                } catch (IOException e) {
-                    JOptionPane.showMessageDialog(this, "Error saving file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } else {
                 // 获取当前选中的标签页的标题
@@ -344,10 +323,7 @@ public class MyNotepad extends JFrame implements DropTargetListener {
                             return;
                         }
                     }
-                    try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(selectedFile), StandardCharsets.UTF_8))) {
-//                    try (PrintWriter writer = new PrintWriter(new FileWriter(selectedFile))) {
-                        writer.print(textArea.getText());
-                        // 保存成功后，将当前标签页的标题改成保存的文件名
+                    if (FileUtil.writeFile(selectedFile.getAbsolutePath(), textArea.getText(), this)) {
                         JLabel titleLabel = (JLabel) ((JPanel) tabbedPane.getTabComponentAt(index)).getComponent(0);
                         titleLabel.setText(fileInfo.getFileName()); // 更新标签页标题
                         tabbedPane.setTitleAt(index, fileInfo.getFileNo());
@@ -355,10 +331,7 @@ public class MyNotepad extends JFrame implements DropTargetListener {
                         titleFilePathMap.put(fileInfo.getFileNo(), fileInfo);
                         newFileNumDeal(tabTitle);
                         tabbedPane.setSelectedIndex(index);
-                    } catch (IOException e) {
-                        JOptionPane.showMessageDialog(this, "Error saving file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                     }
-
                 }
             }
 
@@ -382,37 +355,13 @@ public class MyNotepad extends JFrame implements DropTargetListener {
         int result = fileChooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
-            FileInfo fileInfo = new FileInfo(selectedFile.getName(), selectedFile.getAbsolutePath());
-            if (titleFilePathMap.containsKey(fileInfo.getFileNo())) {
-                int fileTabIndex = tabbedPane.indexOfTab(fileInfo.getFileNo());
-                tabbedPane.setSelectedIndex(fileTabIndex);
-                return;
-            }
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(selectedFile), StandardCharsets.UTF_8))) {
-                JTextArea textArea = new JTextArea();
-                JScrollPane scrollPane = new JScrollPane(textArea);
-                StringBuilder content = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    content.append(line).append("\n");
-                }
-                textArea.setText(content.toString());
-                if (titleFilePathMap.isEmpty() && tabbedPane.getTabCount() == 1 && !getCustomTabTitle(0).endsWith("*")) {
-                    tabbedPane.removeTabAt(0);
-                    notUseFileNums.clear();
-                    newFileNum = 1;
-                }
-                addTabWithCloseButton(fileInfo, scrollPane);
-                titleFilePathMap.put(fileInfo.getFileNo(), fileInfo);
-            } catch (IOException e) {
-                JOptionPane.showMessageDialog(this, "Error opening file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            }
+            showFileContent(selectedFile);
         }
     }
 
     private void createNewTab() {
         JTextArea textArea = new JTextArea();
-        int num = 1;
+        int num;
         if (!notUseFileNums.isEmpty()) {
             num = notUseFileNums.get(0);
             notUseFileNums.remove(0);
@@ -428,8 +377,8 @@ public class MyNotepad extends JFrame implements DropTargetListener {
     /**
      * tab with close button
      *
-     * @param fileInfo
-     * @param scrollPane
+     * @param fileInfo   封装了文件信息的对象
+     * @param scrollPane 当前需要初始化的tab
      */
     private void addTabWithCloseButton(FileInfo fileInfo, JScrollPane scrollPane) {
         scrollPane.setBorder(new EmptyBorder(10, 10, 10, 10)); // 添加边框给每个面板
@@ -513,21 +462,16 @@ public class MyNotepad extends JFrame implements DropTargetListener {
             }
         });
 
-
         // 添加CaretListener以监听选中文本的变化
-        textArea.addCaretListener(new CaretListener() {
-            @Override
-            public void caretUpdate(CaretEvent e) {
-                if (!myDialog.isOpen()) {
-                    highlightSelectedText(textArea);
-                }
+        textArea.addCaretListener(e -> {
+            if (myDialog == null || !myDialog.isOpen()) {
+                highlightSelectedText(textArea);
             }
         });
         // 为 JTextArea 的 Document 添加监听器，监听内容变化
         textArea.getDocument().addDocumentListener(new DocumentListener() {
             //            boolean isModified = false;
-            Timer timer = new Timer(500, e -> onTextChanged());
-
+            private final Timer timer = new Timer(500, e -> onTextChanged());
             {
                 timer.setRepeats(false); // 只在停止输入后执行一次
             }
@@ -585,12 +529,7 @@ public class MyNotepad extends JFrame implements DropTargetListener {
     void newFileNumDeal(String title) {
         if (!title.contains("Untitled")) return;
         notUseFileNums.add(Integer.valueOf(title.replace("Untitled", "")));
-        notUseFileNums.sort(new Comparator<Integer>() {
-            @Override
-            public int compare(Integer o1, Integer o2) {
-                return o1.compareTo(o2);
-            }
-        });
+        notUseFileNums.sort(Integer::compareTo);
     }
 
     // 执行高亮显示的方法
@@ -607,7 +546,7 @@ public class MyNotepad extends JFrame implements DropTargetListener {
                     textArea.getHighlighter().addHighlight(index, end, selectHighlightPainter);
                     index = content.indexOf(searchTerm, end);
                 } catch (BadLocationException ex) {
-                    ex.printStackTrace();
+                    logger.error("An error occurred", ex);
                 }
             }
         }
@@ -621,7 +560,7 @@ public class MyNotepad extends JFrame implements DropTargetListener {
 
 
     public static void main(String[] args) {
-        EventQueue.invokeLater(() -> new MyNotepad());
+        EventQueue.invokeLater(MyNotepad::new);
     }
 
     @Override
@@ -650,6 +589,7 @@ public class MyNotepad extends JFrame implements DropTargetListener {
     @Override
     public void drop(DropTargetDropEvent dtde) {
         try {
+            logger.info("Drop event received");
             dtde.acceptDrop(dtde.getDropAction());
             Transferable transferable = dtde.getTransferable();
             DataFlavor[] flavors = transferable.getTransferDataFlavors();
@@ -659,23 +599,7 @@ public class MyNotepad extends JFrame implements DropTargetListener {
                     if (!files.isEmpty()) {
                         File file = files.get(0);
                         if (file.isFile() && file.getName().toLowerCase().endsWith(".txt")) {
-                            FileInfo fileInfo = new FileInfo(file.getName(), file.getAbsolutePath());
-                            if (titleFilePathMap.containsKey(fileInfo.getFileNo())) {
-                                int fileTabIndex = tabbedPane.indexOfTab(fileInfo.getFileNo());
-                                tabbedPane.setSelectedIndex(fileTabIndex);
-                                return;
-                            }
-                            String content = readFileContent(file);
-                            JTextArea textArea = new JTextArea();
-                            JScrollPane scrollPane = new JScrollPane(textArea);
-                            textArea.setText(content);
-                            if (titleFilePathMap.isEmpty() && tabbedPane.getTabCount() == 1 && !getCustomTabTitle(0).endsWith("*")) {
-                                tabbedPane.removeTabAt(0);
-                                notUseFileNums.clear();
-                                newFileNum = 1;
-                            }
-                            addTabWithCloseButton(fileInfo, scrollPane);
-                            titleFilePathMap.put(fileInfo.getFileNo(), fileInfo);
+                            showFileContent(file);
                         } else {
                             JOptionPane.showMessageDialog(this, "Please drop a .txt file.");
                         }
@@ -683,20 +607,29 @@ public class MyNotepad extends JFrame implements DropTargetListener {
                 }
             }
         } catch (UnsupportedFlavorException | IOException ex) {
-            ex.printStackTrace();
+            logger.error("An error occurred", ex);
         }
     }
 
-    private String readFileContent(File file) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        try(BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file),StandardCharsets.UTF_8))){
-//        try (BufferedReader reader = new BufferedReader(new java.io.FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line).append(System.lineSeparator());
+    private void showFileContent(File file) {
+        FileInfo fileInfo = new FileInfo(file.getName(), file.getAbsolutePath());
+        if (titleFilePathMap.containsKey(fileInfo.getFileNo())) {
+            int fileTabIndex = tabbedPane.indexOfTab(fileInfo.getFileNo());
+            tabbedPane.setSelectedIndex(fileTabIndex);
+            return;
+        }
+        StringBuilder content = FileUtil.readFile(file.getAbsolutePath(), this);
+        if (content != null) {
+            JTextArea textArea = new JTextArea();
+            JScrollPane scrollPane = new JScrollPane(textArea);
+            textArea.setText(content.toString());
+            if (titleFilePathMap.isEmpty() && tabbedPane.getTabCount() == 1 && !getCustomTabTitle(0).endsWith("*")) {
+                tabbedPane.removeTabAt(0);
+                notUseFileNums.clear();
+                newFileNum = 1;
             }
+            addTabWithCloseButton(fileInfo, scrollPane);
+            titleFilePathMap.put(fileInfo.getFileNo(), fileInfo);
         }
-        return sb.toString();
     }
-
 }

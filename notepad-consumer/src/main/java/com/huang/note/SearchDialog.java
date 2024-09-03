@@ -29,11 +29,11 @@ public class SearchDialog extends JDialog {
 
     //用于存储高亮标签
     private java.util.List<Object> highlightTags;
-    private static boolean open = false;
+    private  boolean open = false;
     private JTextArea textArea;
     private static WindowAdapter dialogIsClosing;
 
-    public static boolean isOpen() {
+    public  boolean isOpen() {
         return open;
     }
 
@@ -102,7 +102,7 @@ public class SearchDialog extends JDialog {
         setVisible(true);
         // 设置关闭操作
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        open = true;
+        this.open = true;
         initHighlight();
 
         this.textArea = textArea;
@@ -128,7 +128,7 @@ public class SearchDialog extends JDialog {
         this.textArea.getHighlighter().removeAllHighlights();
 
         dialog.setVisible(true);
-        open = true;
+        this.open = true;
         addActionListener(this.textArea);
         if (searchField.getText() != null && !searchField.getText().isEmpty()) {
             searchField.postActionEvent();
