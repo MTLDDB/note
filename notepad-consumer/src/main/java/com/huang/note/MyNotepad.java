@@ -40,9 +40,8 @@ public class MyNotepad extends JFrame implements DropTargetListener {
     public MyNotepad() {
         super();
         setTitle("My Notepad");
-
         // 设置图标
-        URL iconURL = getClass().getResource("static/img/touxiang.png"); // 替换为实际的图标路径
+        URL iconURL = getClass().getResource("/static/img/touxiang.png");// 替换为实际的图标路径
         if (iconURL != null) {
             setIconImage(new ImageIcon(iconURL).getImage());
         } else {
