@@ -18,24 +18,19 @@ import java.awt.dnd.*;
 import java.awt.event.*;
 import java.io.*;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
 public class MyNotepad extends JFrame implements DropTargetListener {
     private static final Logger logger = LoggerFactory.getLogger(MyNotepad.class);
     private JTabbedPane tabbedPane;
-    private final JMenuBar menuBar;
-    private final JMenu fileMenu, viewMenu;
-    private final JMenuItem newMenuItem, openMenuItem, saveMenuItem, closeMenuItem, reSaveMenuItem;
-    private final JMenuItem changeMenuItem, fontMenuItem;
+    private final JMenuItem changeMenuItem;
 
     private final Map<String, FileInfo> titleFilePathMap = new HashMap<>();
 
     private static int newFileNum = 1;
-    private static java.util.List<Integer> notUseFileNums = new ArrayList<>();
+    private final static java.util.List<Integer> notUseFileNums = new ArrayList<>();
     SearchDialog myDialog;
     private final Highlighter.HighlightPainter selectHighlightPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.ORANGE);
 
@@ -61,40 +56,40 @@ public class MyNotepad extends JFrame implements DropTargetListener {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
         //菜单栏
-        menuBar = new JMenuBar();
+        JMenuBar menuBar = new JMenuBar();
         setJMenuBar(menuBar);
-        fileMenu = new JMenu("文件");
+        JMenu fileMenu = new JMenu("文件");
         menuBar.add(fileMenu);
-        newMenuItem = new JMenuItem("新建", KeyEvent.VK_N);
+        JMenuItem newMenuItem = new JMenuItem("新建", KeyEvent.VK_N);
         newMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK));
         newMenuItem.addActionListener(e -> createNewTab());
         fileMenu.add(newMenuItem);
 
-        openMenuItem = new JMenuItem("打开");
+        JMenuItem openMenuItem = new JMenuItem("打开");
         openMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_MASK));
         openMenuItem.addActionListener(e -> openFile());
         fileMenu.add(openMenuItem);
 
-        saveMenuItem = new JMenuItem("保存");
+        JMenuItem saveMenuItem = new JMenuItem("保存");
         saveMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
         saveMenuItem.addActionListener(e -> saveFile());
         fileMenu.add(saveMenuItem);
-        reSaveMenuItem = new JMenuItem("另存为");
+        JMenuItem reSaveMenuItem = new JMenuItem("另存为");
         reSaveMenuItem.addActionListener(e -> reSaveFile());
         fileMenu.add(reSaveMenuItem);
-        closeMenuItem = new JMenuItem("退出");
+        JMenuItem closeMenuItem = new JMenuItem("退出");
         closeMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, InputEvent.CTRL_MASK));
         closeMenuItem.addActionListener(e -> closeTab());
         fileMenu.add(closeMenuItem);
 
 
-        viewMenu = new JMenu("视图");
+        JMenu viewMenu = new JMenu("视图");
         changeMenuItem = new JMenuItem("自动换行");
         changeMenuItem.addActionListener(e -> changeWordWrap());
         viewMenu.add(changeMenuItem);
 
 
-        fontMenuItem = new JMenuItem("字体大小");
+        JMenuItem fontMenuItem = new JMenuItem("字体大小");
         // 添加动作监听器，显示字体设置对话框
         fontMenuItem.addActionListener(e -> {
             JPanel panel = new JPanel();

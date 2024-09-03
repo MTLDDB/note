@@ -1,5 +1,8 @@
 package com.huang.note;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
@@ -10,12 +13,13 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 
 public class SearchDialog extends JDialog {
+    private static final Logger logger = LoggerFactory.getLogger(SearchDialog.class);
     private volatile static SearchDialog dialog;
-    private JTextField searchField;
-    private JLabel countLabel;
+    private final JTextField searchField;
+    private final JLabel countLabel;
 
-    private JButton supperButton = new JButton("上一个");
-    private JButton nextButton = new JButton("下一个");
+    private JButton supperButton;
+    private JButton nextButton;
 
     private Highlighter.HighlightPainter highlightPainter;
 
@@ -29,7 +33,7 @@ public class SearchDialog extends JDialog {
 
     //用于存储高亮标签
     private java.util.List<Object> highlightTags;
-    private  boolean open = false;
+    private  boolean open;
     private JTextArea textArea;
     private static WindowAdapter dialogIsClosing;
 
@@ -139,7 +143,7 @@ public class SearchDialog extends JDialog {
         textArea.getHighlighter().removeAllHighlights();
         searchField.addActionListener(e -> searchText(searchField, countLabel, textArea));
         nextButton.addActionListener(e -> {
-            if (searchPositions.size() > 0) {
+            if (!searchPositions.isEmpty()) {
                 int oldIndex = currentPositionIndex;
                 currentPositionIndex = (currentPositionIndex + 1) % searchPositions.size();
                 dealWithHighlight(oldIndex, currentPositionIndex);
@@ -147,7 +151,7 @@ public class SearchDialog extends JDialog {
         });
 
         supperButton.addActionListener(e -> {
-            if (searchPositions.size() > 0) {
+            if (!searchPositions.isEmpty()) {
                 int oldIndex = currentPositionIndex;
                 if (currentPositionIndex == -1 || currentPositionIndex == 0) {
                     currentPositionIndex = searchPositions.size();
@@ -172,7 +176,7 @@ public class SearchDialog extends JDialog {
     }
 
     private void dealWithHighlight(int oldIndex, int newIndex) {
-        if (searchPositions.size() > 0) {
+        if (!searchPositions.isEmpty()) {
             if (currentHighlightTag != null) {// 移除旧的高亮
                 textArea.getHighlighter().removeHighlight(currentHighlightTag);
                 try {// 添加统一的高亮
@@ -191,7 +195,7 @@ public class SearchDialog extends JDialog {
                 textArea.setCaretPosition(start);
                 textArea.select(start, end);
             } catch (BadLocationException ex) {
-                ex.printStackTrace();
+                logger.error("Error occurred while highlighting text", ex);
             }
         }
     }
@@ -225,7 +229,7 @@ public class SearchDialog extends JDialog {
                 highlightTags.add(highlighter);
                 index = content.indexOf(searchTerm, end);
             } catch (BadLocationException ex) {
-                ex.printStackTrace();
+               logger.error("An error occurred", ex);
             }
         }
     }
