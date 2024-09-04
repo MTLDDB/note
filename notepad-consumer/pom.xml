@@ -15,6 +15,8 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.organization.name>Huang</project.organization.name>
+        <project.inceptionYear>2024</project.inceptionYear>
     </properties>
     <dependencies>
         <!-- SLF4J API -->
@@ -33,6 +35,26 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com/huang/note/MyNotepad</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>com.akathist.maven.plugins.launch4j</groupId>
                 <artifactId>launch4j-maven-plugin</artifactId>
                 <version>2.4.1</version> <!-- 请确保使用正确的版本 -->
@@ -48,13 +70,10 @@
                 <configuration>
                     <headerType>gui</headerType> <!-- 如果是控制台应用，使用 console -->
                     <outfile>${project.build.directory}/MyNote.exe</outfile>
-                    <jar>D:\data\nacos-springcloud\out\artifacts\notepad_consumer_jar\notepad-consumer.jar</jar>
+                    <jar>${project.build.directory}\notepad-consumer-1.0-SNAPSHOT.jar</jar>
                     <errTitle>Error</errTitle>
-<!--                    <cmdLine>-Dfile.encoding=UTF-8 -Duser.language=zh -Duser.country=CN</cmdLine>-->
                     <chdir>.</chdir>
                     <priority>normal</priority>
-                    <downloadUrl>http://java.com/download</downloadUrl>
-                    <supportUrl>http://www.example.com/support</supportUrl>
                     <stayAlive>false</stayAlive>
                     <icon>${basedir}/src/main/resources/static/img/favicon.ico</icon>
                     <jre>
@@ -67,12 +86,14 @@
                         <fileVersion>1.0.0.0</fileVersion>
                         <txtFileVersion>1.0.0.0</txtFileVersion>
                         <fileDescription>Notepad Consumer</fileDescription>
-                        <copyright>Copyright (C) 2024</copyright>
+<!--                        <copyright>Copyright (C) 2024</copyright>-->
                         <productVersion>1.0.0.0</productVersion>
                         <txtProductVersion>1.0.0.0</txtProductVersion>
                         <productName>Notepad Consumer</productName>
                         <internalName>notepad-consumer</internalName>
                         <originalFilename>notepad.exe</originalFilename>
+                        <companyName>${project.organization.name}</companyName>
+                        <copyright>${project.organization.name} (C) ${project.inceptionYear}</copyright>
                     </versionInfo>
                 </configuration>
             </plugin>

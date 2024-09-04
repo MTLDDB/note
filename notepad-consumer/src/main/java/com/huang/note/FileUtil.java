@@ -35,9 +35,31 @@ public class FileUtil {
                 content.append(line).append(System.lineSeparator());
             }
         } catch (IOException e) {
-            logger.error("Error saving file: ", e);
-            JOptionPane.showMessageDialog( frame,"Error saving file: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            logger.error("找不到文件:{}", e.getMessage());
+            JOptionPane.showMessageDialog( frame,"找不到文件: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
         return content;
+    }
+    public static String getFileType(File file) {
+        if (file == null) {
+            return "";
+        }
+        String fileName = file.getName();
+        int lastIndexOfDot = fileName.lastIndexOf('.');
+        if (lastIndexOfDot == -1) { // 没有找到点，说明没有扩展名
+            return "";
+        }
+        return fileName.substring(lastIndexOfDot + 1).toLowerCase(); // 转换为小写以便统一处理
+    }
+
+    public static String getFileType(String  fileName) {
+        if (fileName == null) {
+            return "";
+        }
+        int lastIndexOfDot = fileName.lastIndexOf('.');
+        if (lastIndexOfDot == -1) { // 没有找到点，说明没有扩展名
+            return "";
+        }
+        return fileName.substring(lastIndexOfDot + 1).toLowerCase(); // 转换为小写以便统一处理
     }
 }

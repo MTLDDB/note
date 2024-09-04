@@ -18,8 +18,8 @@ public class SearchDialog extends JDialog {
     private final JTextField searchField;
     private final JLabel countLabel;
 
-    private JButton supperButton;
-    private JButton nextButton;
+    private final JButton supperButton;
+    private final JButton nextButton;
 
     private Highlighter.HighlightPainter highlightPainter;
 
